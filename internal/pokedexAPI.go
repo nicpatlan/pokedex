@@ -6,7 +6,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
+
+var cache *Cache
 
 type Config struct {
 	Next     string
@@ -24,26 +27,32 @@ type PokeAreaResponse struct {
 }
 
 func GetAreas(url *string) Config {
+	if cache == nil {
+		cache = NewCache(5 * time.Second)
+	}
 	var requestURL string
 	if url == nil {
-		requestURL = "https://pokeapi.co/api/v2/location-area/"
+		requestURL = "https://pokeapi.co/api/v2/location-area/?offset=0&limit=20"
 	} else {
 		requestURL = *url
 	}
-	res, err := http.Get(requestURL)
-	if err != nil {
-		log.Fatal(err)
+	data, ok := cache.Get(requestURL)
+	if !ok {
+		res, err := http.Get(requestURL)
+		if err != nil {
+			log.Fatal(err)
+		}
+		body, err := io.ReadAll(res.Body)
+		res.Body.Close()
+		if res.StatusCode > 299 {
+			log.Fatalf("response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		data = []byte(body)
+		cache.Add(requestURL, data)
 	}
-	body, err := io.ReadAll(res.Body)
-	res.Body.Close()
-	if res.StatusCode > 299 {
-		log.Fatalf("response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
-	}
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	data := []byte(body)
 	areas := PokeAreaResponse{}
 	e := json.Unmarshal(data, &areas)
 	if e != nil {
