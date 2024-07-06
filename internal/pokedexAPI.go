@@ -474,3 +474,23 @@ func CatchPokemon(name string) {
 		fmt.Printf("You missed, %s escaped!\n", name)
 	}
 }
+
+func InspectPokemon(name string) {
+	pokemon, ok := pokeDex[name]
+	if ok {
+		fmt.Printf("Name: %s\n", pokemon.Name)
+		fmt.Printf("Height: %d\n", pokemon.Height)
+		fmt.Printf("Weight: %d\n", pokemon.Weight)
+		fmt.Println("Stats:")
+		for _, value := range pokemon.Stats {
+			fmt.Printf("   - %s: %d\n", value.Stat.Name, value.BaseStat)
+		}
+		fmt.Println("Types:")
+		for _, value := range pokemon.Types {
+			fmt.Printf("   - %s\n", value.Type.Name)
+		}
+	} else {
+		fmt.Printf("You have not caught %s\n", name)
+	}
+	fmt.Println()
+}

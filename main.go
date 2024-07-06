@@ -58,6 +58,11 @@ func commandCatch(_ *pokedexAPI.Config, name string) error {
 	return nil
 }
 
+func commandInspect(_ *pokedexAPI.Config, name string) error {
+	pokedexAPI.InspectPokemon(name)
+	return nil
+}
+
 func generateCommandMap() map[string]command {
 	return map[string]command{
 		"help": {
@@ -90,6 +95,11 @@ func generateCommandMap() map[string]command {
 			description: "attempts to catch the provided pokemon",
 			callback:    commandCatch,
 		},
+		"inspect": {
+			name:        "inspect",
+			description: "displays the name, height, weight, stats, and type of provided pokemon",
+			callback:    commandInspect,
+		},
 	}
 }
 
@@ -108,7 +118,10 @@ func main() {
 		commandList := strings.Fields(input)
 		command, ok := commandMap[commandList[0]]
 		if ok {
-			if command.name == "explore" || command.name == "catch" {
+			args := command.name == "explore"
+			args = args || command.name == "catch"
+			args = args || command.name == "inspect"
+			if args {
 				command.callback(config, commandList[1])
 			} else {
 				command.callback(config, "")
