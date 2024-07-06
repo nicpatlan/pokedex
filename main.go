@@ -63,6 +63,11 @@ func commandInspect(_ *pokedexAPI.Config, name string) error {
 	return nil
 }
 
+func commandPokedex(_ *pokedexAPI.Config, _ string) error {
+	pokedexAPI.ReportPokedex()
+	return nil
+}
+
 func generateCommandMap() map[string]command {
 	return map[string]command{
 		"help": {
@@ -99,6 +104,11 @@ func generateCommandMap() map[string]command {
 			name:        "inspect",
 			description: "displays the name, height, weight, stats, and type of provided pokemon",
 			callback:    commandInspect,
+		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "displays all captured pokemon",
+			callback:    commandPokedex,
 		},
 	}
 }

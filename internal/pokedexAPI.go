@@ -494,3 +494,10 @@ func InspectPokemon(name string) {
 	}
 	fmt.Println()
 }
+
+func ReportPokedex() {
+	fmt.Println("Your Pokedex:")
+	for key := range pokeDex {
+		fmt.Printf(" - %s\n", key)
+	}
+}
