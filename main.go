@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"internal/pokedexAPI"
 )
@@ -11,10 +12,10 @@ import (
 type command struct {
 	name        string
 	description string
-	callback    func(config *pokedexAPI.Config) error
+	callback    func(config *pokedexAPI.Config, area string) error
 }
 
-func commandHelp(_ *pokedexAPI.Config) error {
+func commandHelp(_ *pokedexAPI.Config, _ string) error {
 	commands := generateCommandMap()
 	fmt.Print("Command usage:\n\n")
 	for name, command := range commands {
@@ -24,12 +25,12 @@ func commandHelp(_ *pokedexAPI.Config) error {
 	return nil
 }
 
-func commandExit(_ *pokedexAPI.Config) error {
+func commandExit(_ *pokedexAPI.Config, _ string) error {
 	os.Exit(0)
 	return nil
 }
 
-func commandMap(config *pokedexAPI.Config) error {
+func commandMap(config *pokedexAPI.Config, _ string) error {
 	if config.Next == "" {
 		*config = pokedexAPI.GetAreas(nil)
 	} else {
@@ -38,12 +39,22 @@ func commandMap(config *pokedexAPI.Config) error {
 	return nil
 }
 
-func commandMapb(config *pokedexAPI.Config) error {
+func commandMapb(config *pokedexAPI.Config, _ string) error {
 	if config.Previous == "" {
 		*config = pokedexAPI.GetAreas(nil)
 	} else {
 		*config = pokedexAPI.GetAreas(&config.Previous)
 	}
+	return nil
+}
+
+func commandExplore(_ *pokedexAPI.Config, area string) error {
+	pokedexAPI.GetAreaPokemon(area)
+	return nil
+}
+
+func commandCatch(_ *pokedexAPI.Config, name string) error {
+	pokedexAPI.CatchPokemon(name)
 	return nil
 }
 
@@ -69,6 +80,16 @@ func generateCommandMap() map[string]command {
 			description: "displays the previous set of nearby locations",
 			callback:    commandMapb,
 		},
+		"explore": {
+			name:        "explore",
+			description: "displays Pokemon that can be found in area provided",
+			callback:    commandExplore,
+		},
+		"catch": {
+			name:        "catch",
+			description: "attempts to catch the provided pokemon",
+			callback:    commandCatch,
+		},
 	}
 }
 
@@ -83,9 +104,15 @@ func main() {
 		fmt.Print("pokedex > ")
 		scanner.Scan()
 		input := scanner.Text()
-		command, ok := commandMap[input]
+
+		commandList := strings.Fields(input)
+		command, ok := commandMap[commandList[0]]
 		if ok {
-			command.callback(config)
+			if command.name == "explore" || command.name == "catch" {
+				command.callback(config, commandList[1])
+			} else {
+				command.callback(config, "")
+			}
 		} else {
 			fmt.Println("command not found")
 			break
